@@ -1,6 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
 
 namespace MetroFayeClient.FayeObjects {
-    public class SubscribeRequest : FayeObject {
+    [JsonObject(MemberSerialization.OptIn)]
+    public class SubscribeRequest : FayeRequest {
+        [JsonProperty("subscription")]
+        public string Subscription;
     }
 }

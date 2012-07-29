@@ -100,10 +100,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="FayeConnector.cs" />
+    <Compile Include="FayeConnector_Messages.cs" />
     <Compile Include="FayeConnector_Publish.cs" />
     <Compile Include="FayeConnector_Subscription.cs" />
     <Compile Include="FayeObjects\ChannelMessage.cs" />
     <Compile Include="FayeObjects\ConnectRequest.cs" />
+    <Compile Include="FayeObjects\EventMessage.cs" />
     <Compile Include="FayeObjects\FayeObject.cs" />
     <Compile Include="FayeObjects\FayeRequest.cs" />
     <Compile Include="FayeObjects\FayeResponse.cs" />
