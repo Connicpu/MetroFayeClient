@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using MetroFayeClient.FayeObjects;
 using Windows.Networking.Sockets;
 using System.Threading;
@@ -16,6 +17,8 @@ namespace MetroFayeClient {
         public event EventHandler<FayeConnector, HandshakeResponse> HandshakeComplete;
         public event EventHandler<FayeConnector, HandshakeResponse> HandshakeFailed;
 
+        public MessageWebSocket Socket { get { return _socket; } }
+
         public bool Connected { get; private set; }
 
         public async void Connect(Uri address) {
@@ -25,6 +28,25 @@ namespace MetroFayeClient {
             Connected = true;
             await _socket.ConnectAsync(address);
             Send(new HandshakeRequest());
+        }
+
+        public async Task<HandshakeResponse> ConnectAsync(Uri address) {
+            _socket = new MessageWebSocket();
+            _socket.MessageReceived += FayeMessageReceived;
+            _socket.Closed += (sender, args) => Connected = false;
+            Connected = true;
+            await _socket.ConnectAsync(address);
+            var guid = Guid.NewGuid();
+            var request = new HandshakeRequest {
+                Id = guid.ToString()
+            };
+            var waiter = new ManualResetEventSlim();
+            _requestWaiters[guid] = waiter;
+            await Send(request);
+            await Helpers.WaitAsync(waiter.WaitHandle);
+            var response = await Helpers.DeserializeAsync<HandshakeResponse>(_requestResponses[guid]);
+            ClearResponse(guid);
+            return response;
         }
 
         public void FinishHandshake(string message) {
