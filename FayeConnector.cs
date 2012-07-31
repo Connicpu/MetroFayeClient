@@ -11,7 +11,8 @@ namespace MetroFayeClient {
         public string ClientID;
         private readonly Dictionary<Guid, ManualResetEventSlim> _requestWaiters = new Dictionary<Guid, ManualResetEventSlim>();
         private readonly Dictionary<Guid, bool> _requestSuccesses = new Dictionary<Guid, bool>();
-        private readonly Dictionary<Guid, string> _requestResponses = new Dictionary<Guid, string>(); 
+        private readonly Dictionary<Guid, string> _requestResponses = new Dictionary<Guid, string>();
+        private bool _asyncHandshake;
 
         public event EventHandler<FayeConnector, FayeMessageEventArgs> MessageReceived;
         public event EventHandler<FayeConnector, HandshakeResponse> HandshakeComplete;
@@ -22,6 +23,8 @@ namespace MetroFayeClient {
         public bool Connected { get; private set; }
 
         public async void Connect(Uri address) {
+            _subbedChans.Clear();
+            _asyncHandshake = false;
             _socket = new MessageWebSocket();
             _socket.MessageReceived += FayeMessageReceived;
             _socket.Closed += (sender, args) => Connected = false;
@@ -31,11 +34,17 @@ namespace MetroFayeClient {
         }
 
         public async Task<HandshakeResponse> ConnectAsync(Uri address) {
+            await Task.Delay(10);
+            _asyncHandshake = true;
             _socket = new MessageWebSocket();
             _socket.MessageReceived += FayeMessageReceived;
             _socket.Closed += (sender, args) => Connected = false;
             Connected = true;
-            await _socket.ConnectAsync(address);
+            if (!_socket.ConnectAsync(address).AsTask().Wait(5000)) {
+                _socket.Dispose();
+                _socket = null;
+                return null;
+            }
             var guid = Guid.NewGuid();
             var request = new HandshakeRequest {
                 Id = guid.ToString()
@@ -43,7 +52,11 @@ namespace MetroFayeClient {
             var waiter = new ManualResetEventSlim();
             _requestWaiters[guid] = waiter;
             await Send(request);
-            await Helpers.WaitAsync(waiter.WaitHandle);
+            if (!await Helpers.WaitAsync(waiter.WaitHandle, 5000)) {
+                _socket.Dispose();
+                _socket = null;
+                return null;
+            }
             var response = await Helpers.DeserializeAsync<HandshakeResponse>(_requestResponses[guid]);
             ClearResponse(guid);
             return response;

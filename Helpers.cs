@@ -41,6 +41,12 @@ namespace MetroFayeClient {
             task.Start();
             return task;
         }
+
+        public static Task<bool> WaitAsync(WaitHandle handle, int timeout) {
+            var task = new Task<bool>(() => handle.WaitOne(timeout));
+            task.Start();
+            return task;
+        }
     }
 
     public delegate void EventHandler<in TSender, in TArgs>(TSender sender, TArgs e);

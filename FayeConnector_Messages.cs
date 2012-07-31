@@ -22,7 +22,7 @@ namespace MetroFayeClient {
 
             var obj = Helpers.Deserialize<FayeResponse>(message);
 
-            if (obj.Channel == "/meta/handshake") {
+            if (obj.Channel == "/meta/handshake" && !_asyncHandshake) {
                 FinishHandshake(message);
                 Send(new ConnectRequest());
                 return;
