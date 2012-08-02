@@ -59,6 +59,10 @@ namespace MetroFayeClient {
             }
             var response = await Helpers.DeserializeAsync<HandshakeResponse>(_requestResponses[guid]);
             ClearResponse(guid);
+            if (response.Successful ?? false) {
+                ClientID = response.ClientID;
+                Send(new ConnectRequest());
+            }
             return response;
         }
 

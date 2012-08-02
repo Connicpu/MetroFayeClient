@@ -50,7 +50,8 @@ namespace MetroFayeClient {
 
 
         async Task Send(FayeObject o) {
-            if (o is FayeRequest) (o as FayeRequest).ClientID = ClientID;
+            if (o is FayeRequest) 
+                (o as FayeRequest).ClientID = ClientID;
             using (var writer = new DataWriter(_socket.OutputStream)) {
                 writer.UnicodeEncoding = UnicodeEncoding.Utf8;
                 var stringd = await Helpers.SerializeAsync(o);
