@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using MetroFayeClient.FayeObjects;
@@ -20,9 +21,9 @@ namespace MetroFayeClient {
                 Subscription = channel,
             };
             var waiter = new ManualResetEventSlim();
-            _requestWaiters[guid] = new ManualResetEventSlim();
+            _requestWaiters[guid] = waiter;
             await Send(request);
-            await Helpers.WaitAsync(waiter.WaitHandle);
+            waiter.Wait();
             var response = await Helpers.DeserializeAsync<SubscribeResponse>(_requestResponses[guid]);
             if (response.Successful ?? false) _subbedChans.Add(channel);
             ClearResponse(guid);
@@ -37,9 +38,9 @@ namespace MetroFayeClient {
                 Subscription = channel,
             };
             var waiter = new ManualResetEventSlim();
-            _requestWaiters[guid] = new ManualResetEventSlim();
+            _requestWaiters[guid] = waiter;
             await Send(request);
-            await Helpers.WaitAsync(waiter.WaitHandle);
+            waiter.Wait();
             var response = await Helpers.DeserializeAsync<SubscribeResponse>(_requestResponses[guid]);
             if (response.Successful ?? true) _subbedChans.Remove(channel);
             ClearResponse(guid);

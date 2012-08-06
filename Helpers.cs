@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace MetroFayeClient {
-    internal static class Helpers {
+    public static class Helpers {
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings {
             NullValueHandling = NullValueHandling.Ignore,
             CheckAdditionalContent = false,

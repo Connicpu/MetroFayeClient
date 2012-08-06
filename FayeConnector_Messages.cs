@@ -10,11 +10,16 @@ namespace MetroFayeClient {
     public partial class FayeConnector {
 
         void FayeMessageReceived(MessageWebSocket sender, MessageWebSocketMessageReceivedEventArgs args) {
+            
             string message;
             using (var reader = args.GetDataReader()) {
                 message = reader.ReadString(reader.UnconsumedBufferLength);
             }
             message = message.Trim().TrimStart('[').TrimEnd(']');
+
+#if DEBUG
+            Debug.WriteLine("Incoming Faye Data: " + message);
+#endif
 
             var obj = Helpers.Deserialize<FayeResponse>(message);
 
@@ -34,6 +39,7 @@ namespace MetroFayeClient {
                     if (_requestWaiters.ContainsKey(guid)) {
                         _requestSuccesses[guid] = (bool)obj.Successful;
                         _requestResponses[guid] = message;
+                        Debug.WriteLine("Doing set for response on " + obj.Channel);
                         _requestWaiters[guid].Set();
                         return;
                     }
@@ -49,6 +55,9 @@ namespace MetroFayeClient {
             using (var writer = new DataWriter(_socket.OutputStream)) {
                 writer.UnicodeEncoding = UnicodeEncoding.Utf8;
                 var stringd = await Helpers.SerializeAsync(o);
+#if DEBUG
+                Debug.WriteLine("Outgoing Faye Data: " + stringd);
+#endif
                 writer.WriteString(stringd);
                 await writer.StoreAsync();
                 await writer.FlushAsync();
