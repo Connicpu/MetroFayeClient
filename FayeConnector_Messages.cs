@@ -17,10 +17,6 @@ namespace MetroFayeClient {
             }
             message = message.Trim().TrimStart('[').TrimEnd(']');
 
-#if DEBUG
-            Debug.WriteLine("Incoming Faye Data: " + message);
-#endif
-
             var obj = Helpers.Deserialize<FayeResponse>(message);
 
             if (obj.Channel == "/meta/handshake" && !_asyncHandshake) {
@@ -55,9 +51,6 @@ namespace MetroFayeClient {
             using (var writer = new DataWriter(_socket.OutputStream)) {
                 writer.UnicodeEncoding = UnicodeEncoding.Utf8;
                 var stringd = await Helpers.SerializeAsync(o);
-#if DEBUG
-                Debug.WriteLine("Outgoing Faye Data: " + stringd);
-#endif
                 writer.WriteString(stringd);
                 await writer.StoreAsync();
                 await writer.FlushAsync();
